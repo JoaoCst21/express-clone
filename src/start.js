@@ -11,6 +11,9 @@ const prototype = {
   route,
   handleRequest,
 };
+// this Factory function is used to create a new Router object
+// a Router object is used to store the routes, controllers and middlewares
+// it is also used to create subRoutes
 export const Router = () => {
   const router = Object.create({ ...prototype, Router });
   router.handlersArray = [];

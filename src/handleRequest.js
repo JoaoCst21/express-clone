@@ -45,13 +45,14 @@ const options = {
       ? iterator.next().value
       : value;
     let actualRoute = route;
-    if (params) {
+    if (params.length) {
       const arrUrl = req.url.split("/").slice(1);
       const arrDirectories = route.split("/").slice(1);
-      if (arrDirectories.length !== arrUrl.length) {
-        next(iterator, req, res);
-        return;
-      }
+      // if (arrDirectories.length !== arrUrl.length) {
+      //   console.log({ arrDirectories, arrUrl, route, url: req.url });
+      //   next(iterator, req, res);
+      //   return;
+      // }
       actualRoute = replaceParams(arrDirectories, arrUrl);
       if (actualRoute !== req.url && !isRegex) {
         next(iterator, req, res);
@@ -59,7 +60,9 @@ const options = {
       }
       req.params = createObjectParams(arrDirectories, arrUrl, params);
     }
+    console.log(req.url.startsWith(req.url.match(actualRoute)[0]));
     if (req.url.startsWith(req.url.match(actualRoute)[0])) {
+      console.log("here");
       handleRequest.call(controller, req, res, () => next(iterator, req, res));
       return;
     }
@@ -67,46 +70,6 @@ const options = {
     next(iterator, req, res);
   },
 };
-
-// const next = (iterator, req, res) => {
-//   // const handler = iterator.next().value;
-//   // const { controller } = handler;
-//   // options[typeof controller](handler, iterator, req, res);
-//   const { isRegex, params, controller, route, METHOD } = iterator.next().value;
-//   let actualRoute = route;
-//   if (METHOD === "USE" && req.url.startsWith(route)) {
-//     controller(req, res, () => next(iterator, req, res));
-//     return;
-//   }
-//   if (req.method !== METHOD && METHOD !== "ALL") {
-//     next(iterator, req, res);
-//     return;
-//   }
-//   if (params) {
-//     const arrUrl = req.url.split("/").slice(1);
-//     const arrDirectories = route.split("/").slice(1);
-//     if (arrDirectories.length !== arrUrl.length) {
-//       next(iterator, req, res);
-//       return;
-//     }
-//     actualRoute = replaceParams(arrDirectories, arrUrl);
-//     if (actualRoute !== req.url && !isRegex) {
-//       next(iterator, req, res);
-//       return;
-//     }
-//     req.params = createObjectParams(arrDirectories, arrUrl, params);
-//   }
-//   if (isRegex ? match(req.url, actualRoute) : actualRoute === req.url) {
-//     controller(req, res, () => next(iterator, req, res));
-//   }
-//   req.params = {};
-// };
-
-// export const handleRequest = function (req, res) {
-//   console.log(this);
-//   const iterator = this.handlersArray.values();
-//   next(iterator, req, res);
-// };
 
 export function handleRequest(req, res, nextMiddleware) {
   const iterator = this.handlersArray.values();
@@ -119,6 +82,7 @@ export function handleRequest(req, res, nextMiddleware) {
     if (done) throw new Error("No route found");
     const { controller } = value;
     options[typeof controller](iterator, req, res, next, value);
+
     // handle request
   };
   next(iterator, req, res);
