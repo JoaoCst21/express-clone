@@ -1,49 +1,32 @@
 import express from "../main.js";
 
 const app = express();
-app.use((req, res, next) => {
-  console.log("Middleware");
-  next();
-});
-
-app.get("/", (req, res) => {
+app.use((req, res) => {
   res.end("Hello World");
 });
 
-const router = app.Router();
-router.use((req, res, next) => {
-  console.log("subRoute Middleware");
-  next();
+app.all("/test", (req, res) => {
+  res.end("Hello World All");
 });
 
-router
-  .route("/")
-  .get((req, res) => {
-    res.end("GET");
-  })
-  .post((req, res) => {
-    res.end("POST");
-  });
+const router = app.Router();
 
 router
-  .route("/:id")
+  .route("/test/:id")
   .get((req, res) => {
-    res.end("GET PARAMS");
+    res.end("Hello World Router");
   })
-  .put((req, res) => {
-    res.end("PUT");
-  })
-  .delete((req, res) => {
-    res.end("DELETE");
+  .post((req, res) => {
+    res.end("Hello World Router Post");
   });
 
 app.use("/test", router);
 
-app.all(".*", (req, res) => {
-  res.end("404");
+app.use("/test", (req, res) => {
+  res.end("Hello World 2");
 });
-// console.log(app.handlersArray);
 
+// console.log(app.arrayMiddlewares);
 app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+  console.log("Server listening on port 3000");
 });

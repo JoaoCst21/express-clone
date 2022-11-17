@@ -1,60 +1,39 @@
-import { separateParams } from "./handleParams.js";
-import { checkRouteIsRegex } from "./checkIfRegex.js";
-import { handleRequest } from "./handleRequest.js";
-import { Router } from "./start.js";
+const getParams = (route) => {
+  // make regex to match params
+  const regex = /:([a-zA-Z0-9]+)/g;
+  return [...route.matchAll(regex)].map((match) => match[1]) || [];
+};
 
-// this function is used to store the routes, controllers and middlewares
-const HTTPVerbFactory = (METHOD) =>
-  function (route, controller) {
-    // if the controller is a Router object, it means that the user wants to create a subRoute
+const HTTPVerbsFactory = (method) =>
+  async function (route, controller = "/") {
+    if (typeof route === "function") [route, controller] = [controller, route];
+    if (typeof controller === "string") throw new Error("Controller not found");
     if (typeof controller === "object") {
-      if (METHOD !== "USE") throw new Error("Invalid use of route");
-      const isRegex = checkRouteIsRegex(this.prefix + route);
-      const params = separateParams(this.prefix + route);
-      controller.prefix += route;
-      console.log({ controller });
-      this.handlersArray.push({
-        isRegex,
-        params,
+      controller.prefix = this.prefix + route;
+      this.arrayMiddlewares.push({
+        method,
         controller,
         route: this.prefix + route,
-        METHOD: "USE",
+        params: [],
       });
       return;
     }
-    // if the route is a function and the controller is undefined,
-    // it means that the user wants to use this controller in this route
-    if (typeof route === "function" && !controller) {
-      const isRegex = checkRouteIsRegex(this.prefix);
-      const params = separateParams(this.prefix);
-      this.handlersArray.push({
-        isRegex,
-        params,
-        controller: route,
-        route: this.prefix ? this.prefix : "/",
-        METHOD,
-      });
-      return;
-    }
-    const isRegex = checkRouteIsRegex(this.prefix + route);
-    const params = separateParams(this.prefix + route);
-    console.log(this.prefix + route);
-    this.handlersArray.push({
-      isRegex,
-      params,
-      controller,
+    const middleware = {
+      method,
       route: this.prefix + route,
-      METHOD: METHOD,
-    });
+      controller,
+      params: getParams(route),
+    };
+    this.arrayMiddlewares.push(middleware);
   };
-const get = HTTPVerbFactory("GET");
-const post = HTTPVerbFactory("POST");
-const put = HTTPVerbFactory("PUT");
-const del = HTTPVerbFactory("DELETE");
-const all = HTTPVerbFactory("ALL");
-const use = HTTPVerbFactory("USE");
 
-// this functions lets you chain controllers that share the same route
+const get = HTTPVerbsFactory("GET");
+const post = HTTPVerbsFactory("POST");
+const put = HTTPVerbsFactory("PUT");
+const del = HTTPVerbsFactory("DELETE");
+const all = HTTPVerbsFactory("ALL");
+const use = HTTPVerbsFactory("USE");
+
 function route(route) {
   const obj = {
     get: (controller) => {
@@ -85,4 +64,4 @@ function route(route) {
   return obj;
 }
 
-export { get, use, post, put, del, all, route };
+export { get, post, put, del, all, use, route };
