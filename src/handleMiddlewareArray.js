@@ -10,11 +10,6 @@ const handleMiddleware = async function (middleware, req, res, next) {
         await controller.handleRequest(req, res, next);
         return;
       }
-      if (matchMiddleware(actualRoute, req.url)) {
-        await controller(req, res, next);
-        return;
-      }
-      next();
     }
     if (params.length) {
       const arrDirectories = route.split("/");

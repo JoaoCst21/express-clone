@@ -6,8 +6,8 @@ const getParams = (route) => {
 
 const HTTPVerbsFactory = (method) =>
   async function (route, controller = "/") {
-    if (typeof route === "function") [route, controller] = [controller, route];
-    if (typeof controller === "string") throw new Error("Controller not found");
+    if (typeof route === "function") [route, controller] = ["/", route];
+    if (!controller) throw new Error("Controller not found");
     if (typeof controller === "object") {
       controller.prefix = this.prefix + route;
       this.arrayMiddlewares.push({
